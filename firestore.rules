@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn() { return request.auth != null && request.auth.token.email_verified == true; }
+  function active() { return signedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active'; }
+  function admin() { return active() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'; }
+  function owner(cid) { return active() && get(/databases/$(database)/documents/conversations/$(cid)).data.userId == request.auth.uid; }
+  match /users/{uid} {
+   allow read: if active() && (request.auth.uid == uid || admin());
+   // Role and status updates go through the authenticated server and its last-admin transaction.
+   allow create, delete: if false;
+   allow update: if active() && request.auth.uid == uid
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name','department','studentId','employeeId','updatedAt'])
+    && request.resource.data.name is string && request.resource.data.name.size() >= 2 && request.resource.data.name.size() <= 100
+    && request.resource.data.department is string && request.resource.data.department.size() <= 100
+    && (!('studentId' in request.resource.data) || (request.resource.data.studentId is string && request.resource.data.studentId.size() <= 50))
+    && (!('employeeId' in request.resource.data) || (request.resource.data.employeeId is string && request.resource.data.employeeId.size() <= 50));
+  }
+  match /conversations/{cid} {
+   allow read: if active() && resource.data.userId == request.auth.uid;
+   allow write: if false;
+   match /messages/{mid} { allow read: if owner(cid); allow write: if false; }
+  }
+  // All managed writes use the server API for validation, audit, ownership and deletion guarantees.
+  match /faqs/{id} { allow read: if admin(); allow write: if false; }
+  match /documents/{id} { allow read: if admin(); allow write: if false; }
+  match /knowledgeChunks/{id} { allow read: if admin(); allow write: if false; }
+  match /feedback/{id} { allow read: if admin() || (active() && resource.data.userId == request.auth.uid); allow write: if false; }
+  match /unresolvedQueries/{id} { allow read: if admin(); allow write: if false; }
+  match /systemSettings/{id} { allow read: if admin(); allow write: if false; }
+  match /auditLogs/{id} { allow read: if admin(); allow write: if false; }
+  match /{document=**} { allow read, write: if false; }
+ }
+}

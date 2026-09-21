@@ -1,0 +1,10 @@
+[
+  {
+    "question": "DEMO: Where do I find previous UniBot conversations?",
+    "answer": "DEMO DATA: Open Chat history in the sidebar. This entry demonstrates the import format and is not a university policy.",
+    "category": "Technical Queries",
+    "keywords": ["history", "previous", "conversation"],
+    "targetAudience": ["all"],
+    "active": true
+  }
+]

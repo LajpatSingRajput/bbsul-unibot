@@ -1,0 +1,43 @@
+{
+  "name": "bbsul-unibot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "bootstrap": "node --env-file=.env.local --import tsx scripts/bootstrap.ts",
+    "test:e2e": "playwright test",
+    "demo": "node scripts/demo.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-unibot \"node --import tsx --test tests/rules/*.test.ts\"",
+    "format": "prettier --write app components lib scripts tests docs README.md *.json *.ts"
+  },
+  "dependencies": {
+    "cloudinary": "^2.11.0",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.0.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.468.0",
+    "mammoth": "^1.11.0",
+    "next": "16.3.5",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "@playwright/test": "^1.58.0",
+    "@sparticuz/chromium": "^153.0.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "firebase-tools": "^15.30.1",
+    "prettier": "^3.9.7",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
