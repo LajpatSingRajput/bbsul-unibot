@@ -1,7 +1,7 @@
 // Local, deterministic semantic vocabulary. These are concepts, never university facts.
 // Applied at read time so older chunks need no migration or external embedding calls.
 const stop = new Set(
-  "a an the is are was were be been to of in on for and or i my me you your our do does did can could would should how what when where which please tell about it at with have has hai hain hey he ke ki ka ko liye kya mujhe mein se aur kab much many offer offers offered must submit provide applicants applicant university bbsul queries query pdf txt docx csv".split(
+  "a an the is are was were be been to of in on for and or i my me you your our do does did can could would should how what when where which please kindly give tell know want information info details detail regarding janeman jaaneman bhai bro yaar about it at with have has hai hain hey he ke ki ka ko liye kya mujhe mein se aur kab much many offer offers offered must submit provide applicants applicant university bbsul queries query pdf txt docx csv".split(
     " ",
   ),
 );
@@ -71,7 +71,7 @@ const groups: Record<string, string[]> = {
   scholarship: ["scholarships"],
   enrollment: ["enrolment", "enroll", "enrol"],
   registration: ["register", "registering"],
-  library: ["libary", "libarary"],
+  library: ["libary", "libarary", "libaray", "libray", "libraray"],
   hours: ["opening", "open", "opens"],
   password: ["passwords"],
   certificate: ["certificates"],

@@ -221,7 +221,7 @@ export function universitySpecific(query: string) {
         "attendance",
         "hostel",
       ].some((t) => words.has(t))) ||
-    (words.has("library") && (words.has("hours") || words.has("date")))
+    words.has("library")
   );
 }
 export function needsWeb(query: string) {

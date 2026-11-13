@@ -83,3 +83,44 @@ for (const query of [
     });
     assert.equal(result.sourceType, null);
   });
+
+for (const query of [
+  "janeman, tell me the time of libaray",
+  "bhai can you tell me library timing?",
+  "I want to know the library opening hours",
+  "please give me information regarding libaray hours",
+])
+  test(`conversational library query: ${query}`, async () => {
+    const result = await answer(
+      query,
+      [],
+      [stored],
+      "faculty",
+      { ...settings, ragEnabled: true },
+      async () => {
+        throw new Error("Must not use general fallback");
+      },
+      async (_q, evidence) => {
+        assert.equal(evidence[0].content, stored.content);
+        return { text: "Library ka waqt 9:00 se 5:00 hai." };
+      },
+    );
+    assert.equal(result.sourceType, "DOCUMENT");
+    assert.equal(result.text, "Library ka waqt 9:00 se 5:00 hai.");
+  });
+test("unavailable misspelled library topic never reaches general Gemini", async () => {
+  let called = false;
+  const result = await answer(
+    "janeman, tell me the time of libaray",
+    [],
+    [],
+    "faculty",
+    settings,
+    async () => {
+      called = true;
+      throw new Error("Not permitted");
+    },
+  );
+  assert.equal(called, false);
+  assert.equal(result.text, missing);
+});
