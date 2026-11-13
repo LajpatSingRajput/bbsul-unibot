@@ -7,6 +7,8 @@ import {
 import { generateGrounded, generate } from "./gemini";
 export const missing =
   "I could not find verified information for this question in the current BBSUL knowledge base. Please check with the relevant university department or administrator.";
+export const groundedUnavailable =
+  "I found relevant university sources, but could not prepare a focused answer right now. Please try again shortly.";
 export const unavailable =
   "I could not find a verified answer in the university knowledge base, and the AI service is currently unavailable. Please try again later or contact the relevant university department.";
 export async function answer(
@@ -37,12 +39,35 @@ export async function answer(
     if (settings.geminiEnabled && settings.ragEnabled) {
       try {
         const generated = await groundedProvider(query, evidence);
-        if (generated) {
-          text = generated.text;
-          answerMode = "generated";
-        }
-      } catch {
-        // Quota, timeout, refusal or invalid grounding: retain verified excerpts.
+        if (!generated)
+          return {
+            text: missing,
+            sourceType: null,
+            sourceReferences: [],
+            confidence: null,
+            answerMode: "unavailable",
+            resolution: "unresolved",
+            fallbackUsed: false,
+            webSearchUsed: false,
+          };
+        text = generated.text;
+        answerMode = "generated";
+      } catch (error) {
+        // Never turn failed generation into an unrelated multi-topic document dump.
+        console.warn(
+          "RAG generation failed",
+          error instanceof Error ? error.name : "UnknownError",
+        );
+        return {
+          text: groundedUnavailable,
+          sourceType: null,
+          sourceReferences: [],
+          confidence: null,
+          answerMode: "unavailable",
+          resolution: "unresolved",
+          fallbackUsed: false,
+          webSearchUsed: false,
+        };
       }
     }
     return {

@@ -22,6 +22,8 @@ const groups: Record<string, string[]> = {
     "paperwork",
     "prerequisites",
     "eligibility",
+    "criteria",
+    "criterion",
     "eligible",
   ],
   fee: [

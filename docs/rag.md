@@ -23,7 +23,7 @@ The server passes up to three evidence passages, truncated to 4,000 characters p
 
 The adapter checks completed output, answer shape/length, valid source numbers and exact supporting quotes. These checks reject fabricated citations; they do not independently prove claim entailment or eliminate prompt-injection/hallucination risk. Keep authoritative source material and review consequential answers. Retrieved source references remain attached; confidence is retrieval relevance, not a generated-answer probability. New chat records include answerMode=generated or excerpt. Raw internal evidence is not duplicated into chat storage.
 
-If generation is disabled or fails (including quota, timeout, refusal, truncation, invalid JSON or invalid citations), return existing verified excerpts. If retrieval finds no university evidence, preserve the existing missing-information guard and fallback policy. FAQ priority remains, and FAQ hits may also be rephrased when RAG is enabled.
+If RAG is disabled, return existing verified excerpts. If enabled generation fails (quota, timeout, truncation, invalid JSON or invalid citations), return a clear retry notice; if the model abstains, return the knowledge-not-found response. Never replace failed RAG generation with multi-topic raw excerpts. If retrieval finds no university evidence, preserve the existing missing-information guard and fallback policy. FAQ priority remains, and FAQ hits may also be rephrased when RAG is enabled.
 
 ## Test locally
 
@@ -57,3 +57,7 @@ Earlier exported ZIP files are snapshots and do not contain these new changes.
 ## Live API verification
 
 On 2026-11-13, the configured model (`gemini-3.6-flash`) appeared in the API model listing. A first synthetic generation attempt timed out; a retry completed successfully and passed exact-quote validation, returning “Library ke timings 9:00 se 5:00 tak hain.” for a test-only clock-range passage. No real university documents or private history were used for this live check. Availability in the model list and a successful call do not establish free-tier eligibility or future quota availability. All 61 focused tests pass. `docs/architecture.md` was also updated for the new provider data flow.
+
+## Focused answers follow-up
+
+A stored admission reply was confirmed to have answerMode=excerpt and included an unrelated scholarship section from a neighboring chunk. RAG failures now return an explicit retry notice instead of raw chunks. Generation instructions require own-word answers limited to the requested topic; a broad eligibility question should ask for the intended program rather than enumerate unrelated prospectus sections. Criteria/criterion normalize to requirements, and program-specific admission FAQs cannot answer unspecified-program admission queries. Citation quote checks tolerate formatting-only whitespace and Unicode normalization. Structured output has a larger token budget to reduce truncation. Two new regressions cover program specificity and quote formatting; focused suite now has 63 passing tests.

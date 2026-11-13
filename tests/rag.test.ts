@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answer, missing } from "../lib/chat";
+import { answer, missing, groundedUnavailable } from "../lib/chat";
 import { generateGrounded } from "../lib/gemini";
 import { defaultSettings } from "../lib/types";
 const row = {
@@ -65,7 +65,7 @@ for (const enabled of [{ geminiEnabled: false }, { ragEnabled: false }])
     assert.equal(result.text, row.content);
   });
 for (const mode of ["error", "abstain"])
-  test(`RAG ${mode} retains evidence`, async () => {
+  test(`RAG ${mode} does not dump evidence`, async () => {
     const result = await answer(
       "library timings",
       [],
@@ -78,7 +78,7 @@ for (const mode of ["error", "abstain"])
         return null;
       },
     );
-    assert.equal(result.text, row.content);
+    assert.equal(result.text, mode === "error" ? groundedUnavailable : missing);
   });
 test("missing university information never reaches either API", async () => {
   let calls = 0;
@@ -189,4 +189,47 @@ test("model abstention and incomplete answers", async () => {
       async () => new Response("quota", { status: 429 }),
     ),
   );
+});
+
+test("broad admission question does not pick one program FAQ", async () => {
+  const faq = {
+    ...row,
+    question: "What is the Admission eligibility for BS Commerce?",
+    answer: "BS Commerce needs 45% HSC.",
+  };
+  const doc = {
+    ...row,
+    documentName: "Admissions",
+    content:
+      "Admission eligibility criteria depend on the chosen department. BS Commerce needs 45% HSC. Scholarships are also available.",
+  };
+  const result = await answer(
+    "What is the admission criteria?",
+    [faq],
+    [doc],
+    "student",
+    settings,
+    noFallback,
+    async (_, e) => {
+      assert.equal(e[0].title, "Admissions");
+      return {
+        text: "Admission criteria program ke mutabiq hain. Kis program ke liye pooch rahe hain?",
+      };
+    },
+  );
+  assert.equal(result.sourceType, "DOCUMENT");
+  assert.doesNotMatch(result.text, /scholarship/i);
+});
+test("formatting-only whitespace in model quotes remains grounded", async () => {
+  const result = await generateGrounded(
+    "admission",
+    [{ title: "Policy", content: "Eligibility requires\n\n50% HSC." }],
+    async () =>
+      response({
+        ...valid,
+        answer: "50% HSC is required.",
+        citations: [{ source: 1, quote: "Eligibility requires 50% HSC." }],
+      }),
+  );
+  assert.equal(result?.text, "50% HSC is required.");
 });

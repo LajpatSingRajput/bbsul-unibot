@@ -117,9 +117,33 @@ export function retrieve(
   role: Role,
   settings: any,
 ) {
+  const queryTerms = new Set(tokens(query));
+  const broadAdmission =
+    queryTerms.has("admission") &&
+    [...queryTerms].every(
+      (t) => ["admission", "requirement"].includes(t) || /^\d{4}$/.test(t),
+    );
   const f = rank(
     query,
-    faqs.filter((r) => audienceAllowed(r, role)),
+    faqs.filter((r) => {
+      if (!audienceAllowed(r, role)) return false;
+      if (
+        broadAdmission &&
+        tokens(textValue(r.question)).some(
+          (t) =>
+            !["admission", "requirement"].includes(t) && !/^\d{4}$/.test(t),
+        )
+      )
+        return false;
+      // A broad admission question must not silently inherit one program's
+      // eligibility from a more specific FAQ (e.g. BS Commerce).
+      const programs = /\b(bs|bba|mba|ms|mphil|pharm[ -]?d|b\.?ed)\b/i;
+      return !(
+        programs.test(textValue(r.question)) &&
+        !programs.test(query) &&
+        tokens(query).includes("admission")
+      );
+    }),
     (r) => `${metadata(r)} ${textValue(r.answer)}`,
   )[0];
   if (f && f.score >= threshold(settings.faqThreshold, 0.55))
