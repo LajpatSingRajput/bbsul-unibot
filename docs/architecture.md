@@ -51,7 +51,7 @@ flowchart TD
 
 Normalization applies English/Roman Urdu campus synonyms and phrase mappings at read time. Ranking searches content, document title/name, category, tags and keywords. It combines TF-IDF cosine (25%), canonical keyword coverage (25%), local semantic concept coverage (35%), title match (8%), category match (4%) and phrase match (3%). Exact normalized FAQ questions retain precedence. This is a deterministic concept layer, not a learned embedding model.
 
-Evidence gates require query subjects/modifiers to be present and requested facets (requirements, amounts, dates, hours or schedules) to be supported in answer content. Metadata alone cannot establish these facets. Default FAQ/document thresholds remain 0.55/0.48; invalid settings fall back to those defaults, with a minimum effective threshold of 0.4. Audience and active-state filtering precede ranking, and the API still checks ready document generations. Up to three nonduplicate excerpts retain document/chunk provenance. Excerpts remain verbatim; multiple excerpts receive source labels. No document content is sent to Gemini. See [retrieval details](retrieval.md).
+Evidence gates require query subjects/modifiers to be present and requested facets (requirements, amounts, dates, hours or schedules) to be supported in answer content. Metadata alone cannot establish these facets. Default FAQ/document thresholds remain 0.55/0.48; invalid settings fall back to those defaults, with a minimum effective threshold of 0.4. Audience and active-state filtering precede ranking, and the API still checks ready document generations. Up to three nonduplicate excerpts retain document/chunk provenance. Excerpts remain verbatim; multiple excerpts receive source labels. With the server RAG opt-in and effective Gemini permission enabled, selected evidence is sent to Gemini for grounded generation; otherwise excerpts are returned. See [RAG setup](rag.md). See [retrieval details](retrieval.md).
 
 ## Fallback
 
@@ -68,7 +68,7 @@ flowchart TD
   E --> J[Label AI Generated]
 ```
 
-Only the current question reaches the external provider. Search text is untrusted data under a fixed system instruction. No external tools can execute code or modify the app. Suspected instruction overrides are declined before retrieval. Heuristic topic/injection detection is not a proof against every adversarial phrasing; general AI outputs remain labeled and need human review for consequential use.
+For general fallback, only the current question reaches the external provider. For opted-in RAG, the question plus bounded retrieved passages are sent; no conversation history or profiles are included. Search text is untrusted data under a fixed system instruction. No external tools can execute code or modify the app. Suspected instruction overrides are declined before retrieval. Heuristic topic/injection detection is not a proof against every adversarial phrasing; general AI outputs remain labeled and need human review for consequential use.
 
 ## Document ingestion
 

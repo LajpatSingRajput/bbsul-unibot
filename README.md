@@ -71,7 +71,9 @@ The final active administrator cannot be demoted or disabled. Role/status update
 
 The adapter uses the documented `generateContent` REST endpoint and `tools: [{google_search: {}}]`. It parses grounding citations and search suggestions. A web answer without a supported HTTPS citation is treated as unavailable, not presented as verified. Google-provided search suggestion HTML is rendered in an isolated sandboxed iframe without scripts or same-origin access.
 
-Only the current question is sent to Gemini. Profiles, private history and uploaded files are not sent. Document answers use verbatim retrieved excerpts, avoiding an extra AI call. Model calls time out after 25 seconds. Quota failures do not crash the chat.
+With `RAG_ENABLED=true`, eligible FAQ/document matches are passed to Gemini as bounded context (up to three passages, 4,000 characters each) along with the current question. Both `GEMINI_ENABLED=true` and Admin → Settings → Gemini must also be enabled. Selected document text leaves the server for the provider; profiles, conversation history and original file bytes are not sent. The grounded request has no web-search tool. Valid generated answers retain university source labels and references. Structured citations must quote retrieved content exactly; this detects fabricated references but does not prove every generated claim. If generation times out, exceeds quota, abstains or returns invalid grounding, verified excerpts remain available. No evidence means the existing campus-fact guard still blocks external guesses. Demo mode never calls Gemini. Set `RAG_ENABLED=false` to retain excerpt-only answers. See [RAG setup and testing](docs/rag.md).
+
+Model calls time out after 25 seconds. The existing general Gemini and web fallback remain separate from grounded university answers.
 
 The provider function is injected into the `answer` engine and can be replaced with another server-side search/AI adapter. Return the same `text`, `sourceType`, `sourceReferences`, and `confidence` shape; preserve the retrieval-first and university-fact gates.
 

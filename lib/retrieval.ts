@@ -124,6 +124,7 @@ export function retrieve(
   )[0];
   if (f && f.score >= threshold(settings.faqThreshold, 0.55))
     return {
+      evidence: [{ title: f.row.question, content: textValue(f.row.answer) }],
       text: f.row.answer,
       sourceType: "FAQ" as const,
       sourceReferences: [{ id: f.row.id, title: f.row.question }],
@@ -146,6 +147,10 @@ export function retrieve(
     .slice(0, 3);
   if (ds.length)
     return {
+      evidence: ds.map((d) => ({
+        title: d.row.documentName || d.row.title || "University document",
+        content: textValue(d.row.content),
+      })),
       text:
         ds.length === 1
           ? ds[0].row.content

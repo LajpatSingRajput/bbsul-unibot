@@ -4,7 +4,7 @@ import {
   needsWeb,
   suspicious,
 } from "./retrieval";
-import { generate } from "./gemini";
+import { generateGrounded, generate } from "./gemini";
 export const missing =
   "I could not find verified information for this question in the current BBSUL knowledge base. Please check with the relevant university department or administrator.";
 export const unavailable =
@@ -16,6 +16,7 @@ export async function answer(
   role: any,
   settings: any,
   provider = generate,
+  groundedProvider = generateGrounded,
 ) {
   if (suspicious(query))
     return {
@@ -28,13 +29,31 @@ export async function answer(
       webSearchUsed: false,
     };
   const hit = retrieve(query, faqs, chunks, role, settings);
-  if (hit)
+  if (hit) {
+    // Evidence is internal context, never persisted as a second copy in chat.
+    const { evidence, ...result } = hit;
+    let text = result.text;
+    let answerMode: "generated" | "excerpt" = "excerpt";
+    if (settings.geminiEnabled && settings.ragEnabled) {
+      try {
+        const generated = await groundedProvider(query, evidence);
+        if (generated) {
+          text = generated.text;
+          answerMode = "generated";
+        }
+      } catch {
+        // Quota, timeout, refusal or invalid grounding: retain verified excerpts.
+      }
+    }
     return {
-      ...hit,
+      ...result,
+      text,
+      answerMode,
       resolution: "answered",
       fallbackUsed: false,
       webSearchUsed: false,
     };
+  }
   const base = {
     sourceType: null,
     sourceReferences: [],

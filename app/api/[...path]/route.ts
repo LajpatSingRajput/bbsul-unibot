@@ -197,6 +197,7 @@ async function handler(
       );
       const effective = {
         ...settings,
+        ragEnabled: process.env.RAG_ENABLED === "true" && !demo,
         geminiEnabled:
           settings.geminiEnabled &&
           process.env.GEMINI_ENABLED === "true" &&
@@ -554,8 +555,7 @@ async function handler(
           });
           for (const c of await store.list("knowledgeChunks", "documentId", id))
             await store.remove("knowledgeChunks", c.id);
-          if (!demo)
-            await cloudinaryDelete(d.storagePath);
+          if (!demo) await cloudinaryDelete(d.storagePath);
           await store.remove("documents", id);
         }
         await audit("document.deleted", id);
