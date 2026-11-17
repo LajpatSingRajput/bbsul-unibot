@@ -198,6 +198,7 @@ async function handler(
       const effective = {
         ...settings,
         ragEnabled: process.env.RAG_ENABLED === "true" && !demo,
+        fullContextEnabled: process.env.KB_FULL_CONTEXT === "true" && !demo,
         geminiEnabled:
           settings.geminiEnabled &&
           process.env.GEMINI_ENABLED === "true" &&

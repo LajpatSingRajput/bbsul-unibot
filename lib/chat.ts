@@ -1,3 +1,4 @@
+import { generateKnowledgeAnswer, knowledgeSources } from "./knowledge-answer";
 import {
   retrieve,
   universitySpecific,
@@ -19,6 +20,7 @@ export async function answer(
   settings: any,
   provider = generate,
   groundedProvider = generateGrounded,
+  knowledgeProvider = generateKnowledgeAnswer,
 ) {
   if (suspicious(query))
     return {
@@ -30,6 +32,51 @@ export async function answer(
       fallbackUsed: false,
       webSearchUsed: false,
     };
+  if (
+    settings.fullContextEnabled &&
+    settings.ragEnabled &&
+    settings.geminiEnabled
+  ) {
+    const base = {
+      sourceType: null,
+      sourceReferences: [],
+      confidence: null,
+      resolution: "unresolved",
+      answerMode: "unavailable",
+      fallbackUsed: false,
+      webSearchUsed: false,
+    };
+    try {
+      const response = await knowledgeProvider(
+        query,
+        knowledgeSources(faqs, chunks, role),
+      );
+      if (response.kind === "answer") {
+        const { kind, ...result } = response;
+        return {
+          ...result,
+          resolution: "answered",
+          answerMode: "generated",
+          fallbackUsed: false,
+          webSearchUsed: false,
+        };
+      }
+      if (response.kind === "missing" || universitySpecific(query))
+        return { ...base, text: missing };
+      // Only an explicitly general question may use the existing general API.
+      const web = needsWeb(query);
+      if (web && !settings.webSearchEnabled)
+        return { ...base, text: unavailable };
+      return {
+        ...(await provider(query, web)),
+        resolution: "fallback",
+        fallbackUsed: true,
+        webSearchUsed: web,
+      };
+    } catch {
+      return { ...base, text: groundedUnavailable };
+    }
+  }
   const hit = retrieve(query, faqs, chunks, role, settings);
   if (hit) {
     // Evidence is internal context, never persisted as a second copy in chat.
