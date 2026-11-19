@@ -181,3 +181,18 @@ test("oversized KB fails explicitly instead of silently dropping sources", async
     /knowledge_context_limit/,
   );
 });
+
+test("existing quote cannot justify invented numeric claims or meridiem", () => {
+  for (const text of [
+    "Library hours are 8:00 to 5:00.",
+    "Library hours are 9:00 AM to 5:00 PM.",
+  ])
+    assert.throws(
+      () =>
+        validateKnowledgeAnswer(
+          JSON.stringify({ ...payload, answer: text }),
+          sources,
+        ),
+      /invalid_/,
+    );
+});

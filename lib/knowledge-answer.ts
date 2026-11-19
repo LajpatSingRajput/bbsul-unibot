@@ -121,6 +121,24 @@ export function validateKnowledgeAnswer(
       throw new Error("invalid_citation");
     selected.set(source.source, source);
   }
+  // Reject unsupported numeric/time additions even when a quote itself exists.
+  // This is conservative claim checking, not a general entailment proof.
+  const quotes = data.citations
+    .map((c: { quote: string }) => c.quote)
+    .join(" ");
+  const numbers = (text: string): string[] =>
+    text.match(/\b\d+(?:[.,:]\d+)*/g) ?? [];
+  const supportedNumbers = new Set(numbers(quotes));
+  if (numbers(data.answer).some((n) => !supportedNumbers.has(n)))
+    throw new Error("invalid_numeric_claim");
+  for (const qualifier of ["am", "pm"]) {
+    const pattern = new RegExp(
+      `\\b${qualifier[0]}\\.?${qualifier[1]}\\.?\\b`,
+      "i",
+    );
+    if (pattern.test(data.answer) && !pattern.test(quotes))
+      throw new Error("invalid_time_qualifier");
+  }
   const cited = [...selected.values()];
   return {
     kind: "answer",

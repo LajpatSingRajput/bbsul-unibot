@@ -1,3 +1,4 @@
+import { reliableAnswer } from "./reliable-answer";
 import { generateKnowledgeAnswer, knowledgeSources } from "./knowledge-answer";
 import {
   retrieve,
@@ -32,6 +33,11 @@ export async function answer(
       fallbackUsed: false,
       webSearchUsed: false,
     };
+  const explicitGeneral =
+    /^(explain|define|what is|what are|how does)\b/i.test(query.trim()) &&
+    !universitySpecific(query);
+  if (settings.reliableAnswers && !explicitGeneral)
+    return reliableAnswer(query, faqs, chunks, role, settings);
   if (
     settings.fullContextEnabled &&
     settings.ragEnabled &&

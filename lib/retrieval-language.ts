@@ -17,15 +17,13 @@ const groups: Record<string, string[]> = {
     "needed",
     "necessary",
     "chahiye",
-    "documents",
-    "document",
-    "paperwork",
     "prerequisites",
     "eligibility",
     "criteria",
     "criterion",
     "eligible",
   ],
+  paperwork: ["documents", "document", "credentials"],
   fee: [
     "fees",
     "paisay",
@@ -134,8 +132,10 @@ export function concepts(text: string, query = false): Set<string> {
     /\b(cnic|domicile|certificate|certificates|photographs?|transcripts?)\b/.test(
       normalized,
     )
-  )
+  ) {
     result.add("requirement");
+    result.add("paperwork");
+  }
   if (/\b(applicants?|apply|application)\b/.test(normalized))
     result.add("admission");
   if (

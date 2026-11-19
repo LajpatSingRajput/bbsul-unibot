@@ -1,3 +1,5 @@
+> Current production workflow: see [FYP workflow](fyp-workflow.md). Since the reliability rebuild, `/api/chat` uses source-first answers, selective evidence generation, and bounded excerpt fallback. Full-KB mode below describes the previous implementation and is no longer enabled by the chat route. `KB_FULL_CONTEXT` has no effect on the current production path.
+
 # API-based RAG
 
 The existing pipeline now performs retrieval-augmented generation: eligible knowledge → selected passages → Gemini → sourced natural answer. No downloaded model, Python service, new dependency, Firestore index or data migration is required. Existing documents do not need re-uploading.

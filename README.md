@@ -1,3 +1,5 @@
+> Answer reliability and panel preparation: [current FYP workflow and evaluation protocol](docs/fyp-workflow.md). Known source answers no longer depend on AI availability; complex generation receives relevant excerpts only.
+
 # BBSUL UniBot
 
 **Windows recipients:** start with [WINDOWS-SETUP.md](WINDOWS-SETUP.md) for installation, credential-free demo, and persistent Firebase setup.

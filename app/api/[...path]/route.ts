@@ -27,6 +27,7 @@ import {
 } from "@/lib/validation";
 import { defaultSettings, now, categories } from "@/lib/types";
 import { answer } from "@/lib/chat";
+import { resolveProgramFollowUp } from "@/lib/reliable-answer";
 import { extractFile, validateFile, MAX_FILE } from "@/lib/documents";
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -198,7 +199,7 @@ async function handler(
       const effective = {
         ...settings,
         ragEnabled: process.env.RAG_ENABLED === "true" && !demo,
-        fullContextEnabled: process.env.KB_FULL_CONTEXT === "true" && !demo,
+        reliableAnswers: true,
         geminiEnabled:
           settings.geminiEnabled &&
           process.env.GEMINI_ENABLED === "true" &&
@@ -208,8 +209,14 @@ async function handler(
           process.env.WEB_SEARCH_ENABLED === "true" &&
           !demo,
       };
+      const question = input.conversationId
+        ? resolveProgramFollowUp(
+            input.question,
+            await store.list(`conversations/${cid}/messages`),
+          )
+        : input.question;
       const result = await answer(
-        input.question,
+        question,
         await store.list("faqs"),
         chunks,
         user.role,

@@ -195,8 +195,16 @@ export default function Chat({
                         ? sourceLabels[m.sourceType as Source]
                         : m.resolution === "blocked"
                           ? "Request declined"
-                          : "No verified answer"}
+                          : m.answerMode === "clarification"
+                            ? m.failureReason === "conflicting_sources"
+                              ? "Source review needed"
+                              : "More detail needed"
+                            : "No verified answer"}
                     </Badge>
+                  )}
+                  {m.answerMode === "excerpt" && <span>Source excerpt</span>}
+                  {m.answerMode === "generated" && (
+                    <span>AI-written from sources</span>
                   )}
                   <time>
                     {new Date(m.timestamp).toLocaleTimeString([], {
